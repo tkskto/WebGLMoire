@@ -1,0 +1,1 @@
+///<reference path="globals/minMatrixb/minMatrixb.d.ts" />

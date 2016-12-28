@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<title>webGL モアレ</title>
+<link rel="stylesheet" href="common/css/style.css">
+<script src="common/js/libs/minMatrixb.js"></script>
+</head>
+<body>
+<div class="canvasWrap">
+    <canvas id="canvas"></canvas>
+</div>
+<script id="VS" type="x-shader/x-vertex">
+attribute vec3 position;
+uniform mat4 mvpMatrix;
+void main(){
+    gl_Position = mvpMatrix * vec4(position, 1.0);
+}
+</script>
+<script id="FS" type="x-shader/x-fragment">
+precision mediump float;
+
+const float rad = 0.25;
+const vec2 mid = vec2(0.5);
+const ivec2 reps = ivec2(8, 8);
+const float angle = 45.0;
+const float RADIANS = angle * 0.0174532;
+mat2 rot = mat2(vec2(cos(RADIANS), -sin(RADIANS)), vec2(sin(RADIANS), cos(RADIANS)));
+
+uniform vec2 resolution;
+
+void main(){
+    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+	p *= rot;
+
+	vec2 q = p - vec2(0.5, 0.5);
+	vec2 repeat = vec2(fract(q.x * float(reps.x)), fract(q.y * float(reps.y)) );
+	vec3 col = vec3(1.0, 1.0, 1.0);
+
+	vec2 distFromMid = repeat - mid;
+	float dist = length(distFromMid);
+	float sharpness = 50.0;
+	float circ = rad * sharpness - dist * sharpness;
+
+	col *= vec3(circ);
+	gl_FragColor = vec4(col, 1.0);
+}
+</script>
+<script src="common/js/run.js"></script>
+</body></html>
