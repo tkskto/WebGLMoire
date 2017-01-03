@@ -127,7 +127,6 @@ var model;
                 };
             };
             this._mouseMove = 0;
-            this._rotation = { x: 0, y: 0, r: 0 };
             window.addEventListener('resize', this.onResize);
             this.onResize();
         }
@@ -159,16 +158,6 @@ var model;
             },
             set: function (value) {
                 this._mouseMove = value;
-            },
-            enumerable: true,
-            configurable: true
-        });
-        Object.defineProperty(Model.prototype, "rotation", {
-            get: function () {
-                return this._rotation;
-            },
-            set: function (value) {
-                this._rotation = value;
             },
             enumerable: true,
             configurable: true
@@ -388,15 +377,11 @@ var gl;
             this._index = _index;
             this._model = model.Model.getInstance();
             this.mLib = new MatIV();
-            this.qLib = new QtnIV();
-            this.quaternion = this.qLib.identity(this.qLib.create());
             this.mMatrix = this.mLib.identity(this.mLib.create());
             this.vMatrix = this.mLib.identity(this.mLib.create());
             this.pMatrix = this.mLib.identity(this.mLib.create());
-            this.qMatrix = this.mLib.identity(this.mLib.create());
             this.vpMatrix = this.mLib.identity(this.mLib.create());
             this.mvpMatrix = this.mLib.identity(this.mLib.create());
-            this.count = 0;
             this.init = function () {
                 _this._gl.blendFunc(_this._gl.SRC_ALPHA, _this._gl.ONE_MINUS_SRC_ALPHA);
                 _this.animate();
@@ -488,36 +473,39 @@ var controller;
             this._canvas = _canvas;
             this.setupEvents = function () {
                 _this._canvas.addEventListener('mousedown', _this.onMouseDown, false);
+                _this._canvas.addEventListener('touchstart', _this.onTouchStart, false);
             };
             this.removeEvents = function () {
                 _this._canvas.removeEventListener('mousedown', _this.onMouseDown);
                 _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
-                _this._canvas.removeEventListener('mouseup', _this.onMouseUp);
+                _this._canvas.removeEventListener('mouseup', _this.onMoveEnd);
+                _this._canvas.removeEventListener('touchstart', _this.onTouchStart);
+                _this._canvas.removeEventListener('touchmove', _this.onTouchMove);
+                _this._canvas.removeEventListener('touchend', _this.onMoveEnd);
             };
             this.onMouseDown = function (e) {
                 _this.start = e.clientY;
                 _this._canvas.addEventListener('mousemove', _this.onMouseMove, false);
-                _this._canvas.addEventListener('mouseup', _this.onMouseUp, false);
+                _this._canvas.addEventListener('mouseup', _this.onMoveEnd, false);
+            };
+            this.onTouchStart = function (e) {
+                var touch = e.touches[0];
+                _this.start = touch.clientY;
+                _this._canvas.addEventListener('touchmove', _this.onTouchMove, false);
+                _this._canvas.addEventListener('touchend', _this.onMoveEnd, false);
             };
             this.onMouseMove = function (e) {
                 _this._model.mouseMove -= _this.start - e.clientY;
-                var cw = _this._model.screen.width;
-                var ch = _this._model.screen.height;
-                var wh = 1 / Math.sqrt(cw * cw + ch * ch);
-                var x = e.clientX - cw * 0.5;
-                var y = e.clientY - ch * 0.5;
-                var sq = Math.sqrt(x * x + y * y);
-                var r = sq * 2.0 * Math.PI * wh;
-                if (sq != 1) {
-                    sq = 1 / sq;
-                    x *= sq;
-                    y *= sq;
-                }
-                _this._model.rotation = { x: x, y: y, r: r };
             };
-            this.onMouseUp = function (e) {
+            this.onTouchMove = function (e) {
+                var touch = e.touches[0];
+                _this._model.mouseMove -= _this.start - touch.clientY;
+            };
+            this.onMoveEnd = function (e) {
                 _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
-                _this._canvas.removeEventListener('mouseup', _this.onMouseUp);
+                _this._canvas.removeEventListener('mouseup', _this.onMoveEnd);
+                _this._canvas.removeEventListener('touchmove', _this.onTouchMove);
+                _this._canvas.removeEventListener('touchend', _this.onMoveEnd);
             };
             this.init();
         }

@@ -64,15 +64,5 @@ module model {
         set mouseMove(value: number) {
             this._mouseMove = value;
         }
-        
-        private _rotation: {x:number, y:number, r:number} = {x:0, y:0, r:0};
-    
-        get rotation(): {x: number; y: number; r: number} {
-            return this._rotation;
-        }
-    
-        set rotation(value: {x: number; y: number; r: number}) {
-            this._rotation = value;
-        }
     }
 }

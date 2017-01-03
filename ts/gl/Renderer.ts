@@ -10,16 +10,11 @@ module gl {
         private _height:number;
         
         private mLib:MatIV = new MatIV();
-        private qLib:QtnIV = new QtnIV();
-        private quaternion:number[] = this.qLib.identity(this.qLib.create());
         private mMatrix = this.mLib.identity(this.mLib.create());
         private vMatrix = this.mLib.identity(this.mLib.create());
         private pMatrix = this.mLib.identity(this.mLib.create());
-        private qMatrix = this.mLib.identity(this.mLib.create());
         private vpMatrix = this.mLib.identity(this.mLib.create());
         private mvpMatrix = this.mLib.identity(this.mLib.create());
-        
-        private count = 0;
         
         constructor(private _lib:gl.Lib, private _prg:gl.Program, private _index:number[]){
             this._gl = _lib.gl;
@@ -51,15 +46,9 @@ module gl {
             this._prg.pushShader([this.mvpMatrix, [0.12, 0.12, 0.12]]);
             this._gl.drawElements(this._gl.TRIANGLES, this._index.length, this._gl.UNSIGNED_SHORT, 0);
     
-            // let _rotation:{x:number, y:number, r:number} = this._model.rotation;
-            // this.qLib.rotate(_rotation.r, [_rotation.y, _rotation.x, 0.0], this.quaternion);
-            // this.qLib.toMatIV(this.quaternion, this.qMatrix);
-    
             //2枚目のレンダリング
             this.mLib.identity(this.mMatrix);
-            //this.mLib.multiply(this.mMatrix, this.qMatrix, this.mMatrix);
             this.mLib.rotate(this.mMatrix, this._model.mouseMove, [0.0, 0.0, 1.0], this.mMatrix);
-            //this.mLib.scale(this.mMatrix, [0.9, 0.9, 1.0], this.mMatrix);
             this.mLib.multiply(this.vpMatrix, this.mMatrix, this.mvpMatrix);
             this._gl.enable(this._gl.BLEND);
             this._prg.pushShader([this.mvpMatrix, [0.1, 0.1, 0.1]]);
