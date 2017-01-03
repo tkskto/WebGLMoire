@@ -36,8 +36,8 @@ module controller {
         
         private onTouchStart = (e:TouchEvent) => {
     
-            let touch:Touch = e.touches[0];
-            this.start = touch.clientY;
+            let touch:Touch = e.changedTouches[0];
+            this.start = touch.pageY;
             
             this._canvas.addEventListener('touchmove', this.onTouchMove, false);
             this._canvas.addEventListener('touchend', this.onMoveEnd, false);
@@ -48,8 +48,8 @@ module controller {
         };
         
         private onTouchMove = (e:TouchEvent) => {
-            let touch:Touch = e.touches[0];
-            this._model.mouseMove -= this.start - touch.clientY;
+            let touch:Touch = e.changedTouches[0];
+            this._model.mouseMove -= this.start - touch.pageY;
         };
     
         private onMoveEnd = (e:MouseEvent) => {

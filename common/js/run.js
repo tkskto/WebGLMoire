@@ -489,8 +489,8 @@ var controller;
                 _this._canvas.addEventListener('mouseup', _this.onMoveEnd, false);
             };
             this.onTouchStart = function (e) {
-                var touch = e.touches[0];
-                _this.start = touch.clientY;
+                var touch = e.changedTouches[0];
+                _this.start = touch.pageY;
                 _this._canvas.addEventListener('touchmove', _this.onTouchMove, false);
                 _this._canvas.addEventListener('touchend', _this.onMoveEnd, false);
             };
@@ -498,8 +498,8 @@ var controller;
                 _this._model.mouseMove -= _this.start - e.clientY;
             };
             this.onTouchMove = function (e) {
-                var touch = e.touches[0];
-                _this._model.mouseMove -= _this.start - touch.clientY;
+                var touch = e.changedTouches[0];
+                _this._model.mouseMove -= _this.start - touch.pageY;
             };
             this.onMoveEnd = function (e) {
                 _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
