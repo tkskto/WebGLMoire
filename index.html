@@ -41,20 +41,15 @@ void main(){
 	vec2 q = p - vec2(0.5, 0.5);
 
 	vec2 repeat = vec2(fract(q.x * float(reps.x)), fract(q.y * float(reps.y)));
-	vec3 col = vec3(1.0, 1.0, 1.0);
 	vec2 distFromMid = repeat - mid;
 
 	float dist = length(distFromMid);
-	float sharpness = 75.0;
+	float sharpness = 20.0;
 	float circ = rad * sharpness - dist * sharpness;
+    float alpha = 1.0 - circ;
 
-	col *= vec3(circ);
+    gl_FragColor = vec4(color, alpha);
 
-	if(col.r > 0.0) {
-		gl_FragColor = vec4(col, 0.0);
-	} else {
-		gl_FragColor = vec4(color, 1.0);
-	}
 }
 </script>
 <script src="common/js/run.js"></script>
