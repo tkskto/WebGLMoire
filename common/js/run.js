@@ -126,6 +126,8 @@ var model;
                     height: window.innerHeight
                 };
             };
+            this._mouseMove = 0;
+            this._rotation = { x: 0, y: 0, r: 0 };
             window.addEventListener('resize', this.onResize);
             this.onResize();
         }
@@ -147,6 +149,26 @@ var model;
             set: function (value) {
                 this._screen = value;
                 this.dispatchEvent(Model.RESIZE_EVENT);
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Model.prototype, "mouseMove", {
+            get: function () {
+                return this._mouseMove * 0.005;
+            },
+            set: function (value) {
+                this._mouseMove = value;
+            },
+            enumerable: true,
+            configurable: true
+        });
+        Object.defineProperty(Model.prototype, "rotation", {
+            get: function () {
+                return this._rotation;
+            },
+            set: function (value) {
+                this._rotation = value;
             },
             enumerable: true,
             configurable: true
@@ -366,12 +388,17 @@ var gl;
             this._index = _index;
             this._model = model.Model.getInstance();
             this.mLib = new MatIV();
+            this.qLib = new QtnIV();
+            this.quaternion = this.qLib.identity(this.qLib.create());
             this.mMatrix = this.mLib.identity(this.mLib.create());
             this.vMatrix = this.mLib.identity(this.mLib.create());
             this.pMatrix = this.mLib.identity(this.mLib.create());
+            this.qMatrix = this.mLib.identity(this.mLib.create());
             this.vpMatrix = this.mLib.identity(this.mLib.create());
             this.mvpMatrix = this.mLib.identity(this.mLib.create());
+            this.count = 0;
             this.init = function () {
+                _this._gl.blendFunc(_this._gl.SRC_ALPHA, _this._gl.ONE_MINUS_SRC_ALPHA);
                 _this.animate();
             };
             this.animate = function () {
@@ -379,20 +406,27 @@ var gl;
                 _this.render();
             };
             this.render = function () {
-                _this._gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                _this._gl.clearColor(1.0, 1.0, 1.0, 1.0);
                 _this._gl.clearDepth(1.0);
                 _this._gl.clear(_this._gl.COLOR_BUFFER_BIT | _this._gl.DEPTH_BUFFER_BIT);
+                _this.mLib.identity(_this.mMatrix);
                 _this.mLib.multiply(_this.vpMatrix, _this.mMatrix, _this.mvpMatrix);
-                _this._prg.pushShader([_this.mvpMatrix, [_this._width, _this._height]]);
+                _this._gl.disable(_this._gl.BLEND);
+                _this._prg.pushShader([_this.mvpMatrix, [0.12, 0.12, 0.12]]);
+                _this._gl.drawElements(_this._gl.TRIANGLES, _this._index.length, _this._gl.UNSIGNED_SHORT, 0);
+                _this.mLib.identity(_this.mMatrix);
+                _this.mLib.rotate(_this.mMatrix, _this._model.mouseMove, [0.0, 0.0, 1.0], _this.mMatrix);
+                _this.mLib.multiply(_this.vpMatrix, _this.mMatrix, _this.mvpMatrix);
+                _this._gl.enable(_this._gl.BLEND);
+                _this._prg.pushShader([_this.mvpMatrix, [0.1, 0.1, 0.1]]);
                 _this._gl.drawElements(_this._gl.TRIANGLES, _this._index.length, _this._gl.UNSIGNED_SHORT, 0);
                 _this._gl.flush();
             };
             this.onResize = function () {
                 _this._width = _this._model.screen.width;
                 _this._height = _this._model.screen.height;
-                _this.shortSide = Math.min(_this._width, _this._height) * .5 + 5;
-                _this.mLib.lookAt([0.0, 0.0, _this.shortSide], [0, 0, 0], [0, 1, 0], _this.vMatrix);
-                _this.mLib.perspective(90, _this._width / _this._height, 0.1, 1000, _this.pMatrix);
+                _this.mLib.lookAt([0.0, 0.0, 1.0], [0, 0, 0], [0, 1, 0], _this.vMatrix);
+                _this.mLib.perspective(90, _this._width / _this._height, 0.1, 100, _this.pMatrix);
                 _this.mLib.multiply(_this.pMatrix, _this.vMatrix, _this.mvpMatrix);
             };
             this._gl = _lib.gl;
@@ -445,6 +479,56 @@ var item;
     }());
     item.Texture = Texture;
 })(item || (item = {}));
+var controller;
+(function (controller) {
+    var Mouse = (function () {
+        function Mouse(_model, _canvas) {
+            var _this = this;
+            this._model = _model;
+            this._canvas = _canvas;
+            this.setupEvents = function () {
+                _this._canvas.addEventListener('mousedown', _this.onMouseDown, false);
+            };
+            this.removeEvents = function () {
+                _this._canvas.removeEventListener('mousedown', _this.onMouseDown);
+                _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
+                _this._canvas.removeEventListener('mouseup', _this.onMouseUp);
+            };
+            this.onMouseDown = function (e) {
+                _this.start = e.clientY;
+                _this._canvas.addEventListener('mousemove', _this.onMouseMove, false);
+                _this._canvas.addEventListener('mouseup', _this.onMouseUp, false);
+            };
+            this.onMouseMove = function (e) {
+                _this._model.mouseMove -= _this.start - e.clientY;
+                var cw = _this._model.screen.width;
+                var ch = _this._model.screen.height;
+                var wh = 1 / Math.sqrt(cw * cw + ch * ch);
+                var x = e.clientX - cw * 0.5;
+                var y = e.clientY - ch * 0.5;
+                var sq = Math.sqrt(x * x + y * y);
+                var r = sq * 2.0 * Math.PI * wh;
+                if (sq != 1) {
+                    sq = 1 / sq;
+                    x *= sq;
+                    y *= sq;
+                }
+                _this._model.rotation = { x: x, y: y, r: r };
+            };
+            this.onMouseUp = function (e) {
+                _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
+                _this._canvas.removeEventListener('mouseup', _this.onMouseUp);
+            };
+            this.init();
+        }
+        Mouse.prototype.init = function () {
+            this.removeEvents();
+            this.setupEvents();
+        };
+        return Mouse;
+    }());
+    controller.Mouse = Mouse;
+})(controller || (controller = {}));
 (function (win, doc) {
     'use strict';
     window.onload = function () {
@@ -454,15 +538,13 @@ var item;
         _lib.canvas = doc.getElementById('canvas');
         _lib.canvas.width = _model.screen.width;
         _lib.canvas.height = _model.screen.height;
-        var _ctx = _lib.canvas.getContext('webgl') || _lib.canvas.getContext('experimental-webgl');
+        var _ctx = _lib.canvas.getContext('webgl', { stencil: false }) || _lib.canvas.getContext('experimental-webgl', { stencil: false });
         _lib.gl = _ctx;
-        var halfW = _model.screen.width * .5;
-        var halfH = _model.screen.height * .5;
         var position = [
-            -halfW, halfH, 0.0,
-            halfW, halfH, 0.0,
-            -halfW, -halfH, 0.0,
-            halfW, -halfH, 0.0
+            -1.0, 1.0, 0.0,
+            1.0, 1.0, 0.0,
+            -1.0, -1.0, 0.0,
+            1.0, -1.0, 0.0
         ];
         var VBO = [
             utils.GLUtil.createVBO(_ctx, position)
@@ -472,10 +554,11 @@ var item;
             2, 1, 3
         ];
         var IBO = utils.GLUtil.createIBO(_ctx, index);
-        var _prg = new gl.Program(_lib, 'VS', 'FS', ['position'], [3], ['mvpMatrix', 'resolution'], ['matrix4fv', '2fv']);
+        var _prg = new gl.Program(_lib, 'VS', 'FS', ['position'], [3], ['mvpMatrix', 'color'], ['matrix4fv', '3fv']);
         _prg.setAttrVBO(VBO);
         _prg.setAttrIBO(IBO);
         var _renderer = new gl.Renderer(_lib, _prg, index);
+        new controller.Mouse(_model, _lib.canvas);
     };
 })(window, window.document);
 //# sourceMappingURL=run.js.map

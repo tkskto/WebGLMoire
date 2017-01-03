@@ -13,8 +13,12 @@
 <script id="VS" type="x-shader/x-vertex">
 attribute vec3 position;
 uniform mat4 mvpMatrix;
+
+varying vec3 vPos;
+
 void main(){
-    gl_Position = mvpMatrix * vec4(position, 1.0);
+    vPos = position;
+    gl_Position = mvpMatrix * vec4(vPos, 1.0);
 }
 </script>
 <script id="FS" type="x-shader/x-fragment">
@@ -25,25 +29,32 @@ const vec2 mid = vec2(0.5);
 const ivec2 reps = ivec2(8, 8);
 const float angle = 45.0;
 const float RADIANS = angle * 0.0174532;
-mat2 rot = mat2(vec2(cos(RADIANS), -sin(RADIANS)), vec2(sin(RADIANS), cos(RADIANS)));
+mat2 rot = mat2(vec2(cos(RADIANS) * 3.0, -sin(RADIANS) * 3.0), vec2(sin(RADIANS) * 3.0, cos(RADIANS) * 3.0));
 
-uniform vec2 resolution;
+uniform vec3 color;
+varying vec3 vPos;
 
 void main(){
-    vec2 p = (gl_FragCoord.xy * 2.0 - resolution) / min(resolution.x, resolution.y);
+	vec2 p = vPos.xy;
 	p *= rot;
 
 	vec2 q = p - vec2(0.5, 0.5);
-	vec2 repeat = vec2(fract(q.x * float(reps.x)), fract(q.y * float(reps.y)) );
-	vec3 col = vec3(1.0, 1.0, 1.0);
 
+	vec2 repeat = vec2(fract(q.x * float(reps.x)), fract(q.y * float(reps.y)));
+	vec3 col = vec3(1.0, 1.0, 1.0);
 	vec2 distFromMid = repeat - mid;
+
 	float dist = length(distFromMid);
-	float sharpness = 50.0;
+	float sharpness = 75.0;
 	float circ = rad * sharpness - dist * sharpness;
 
 	col *= vec3(circ);
-	gl_FragColor = vec4(col, 1.0);
+
+	if(col.r > 0.0) {
+		gl_FragColor = vec4(col, 0.0);
+	} else {
+		gl_FragColor = vec4(color, 1.0);
+	}
 }
 </script>
 <script src="common/js/run.js"></script>

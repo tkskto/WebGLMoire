@@ -4,6 +4,7 @@
 ///<reference path="gl/Program.ts"/>
 ///<reference path="gl/Renderer.ts"/>
 ///<reference path="item/Texture.ts"/>
+///<reference path="controller/Mouse.ts"/>
 
 (function(win, doc) {
     'use strict';
@@ -19,19 +20,16 @@
         _lib.canvas.width = _model.screen.width;
         _lib.canvas.height = _model.screen.height;
     
-        let _ctx: WebGLRenderingContext = _lib.canvas.getContext('webgl') || _lib.canvas.getContext('experimental-webgl');
+        let _ctx: WebGLRenderingContext = _lib.canvas.getContext('webgl', {stencil: false}) || _lib.canvas.getContext('experimental-webgl', {stencil: false});
     
         _lib.gl = _ctx;
     
-        let halfW = _model.screen.width * .5;
-        let halfH = _model.screen.height * .5;
-    
         // モデル(頂点)データ
         let position = [
-            -halfW, halfH, 0.0,
-            halfW, halfH, 0.0,
-            -halfW, -halfH, 0.0,
-            halfW, -halfH, 0.0
+            -1.0, 1.0, 0.0,
+            1.0, 1.0, 0.0,
+            -1.0, -1.0, 0.0,
+            1.0, -1.0, 0.0
         ];
     
         // 座標データから頂点バッファを生成
@@ -53,14 +51,15 @@
             'FS',
             ['position'],
             [3],
-            ['mvpMatrix', 'resolution'],
-            ['matrix4fv', '2fv']
+            ['mvpMatrix', 'color'],
+            ['matrix4fv', '3fv']
         );
     
         _prg.setAttrVBO(VBO);
         _prg.setAttrIBO(IBO);
     
         let _renderer: gl.Renderer = new gl.Renderer(_lib, _prg, index);
+        new controller.Mouse(_model, _lib.canvas);
     }
     
 })(window, window.document);
