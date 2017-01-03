@@ -6,3 +6,4 @@ WebGLでモアレを作ってみよう
 目標とするモアレはこちら
 
 <img src="https://github.com/tkskto/webGLMoire/blob/images/document/moire3b.jpg">
+<span style="color:#cccccc">引用：http://www.h7.dion.ne.jp/~kagaku/moire/moire.html1</span>
