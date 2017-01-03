@@ -24,32 +24,30 @@ void main(){
 <script id="FS" type="x-shader/x-fragment">
 precision mediump float;
 
-const float rad = 0.25;
-const vec2 mid = vec2(0.5);
-const ivec2 reps = ivec2(8, 8);
-const float angle = 45.0;
-const float RADIANS = angle * 0.0174532;
-mat2 rot = mat2(vec2(cos(RADIANS) * 3.0, -sin(RADIANS) * 3.0), vec2(sin(RADIANS) * 3.0, cos(RADIANS) * 3.0));
+const float rad = 0.3; //白い円の半径
+const ivec2 reps = ivec2(20, 20); //intのvec2 縦横何分割するか（１辺の円の個数/2）
+const float angle = 45.0; // 全体の傾き
+const float RADIANS = angle * 0.0174532; // 傾きをラジアンにする
+mat2 rot = mat2(vec2(cos(RADIANS), -sin(RADIANS)), vec2(sin(RADIANS), cos(RADIANS))); //傾けるための正方行列
 
-uniform vec3 color;
-varying vec3 vPos;
+uniform vec3 color; //ボードの色
+varying vec3 vPos; //座標変換後のポジションを受け取る
 
 void main(){
-	vec2 p = vPos.xy;
-	p *= rot;
+    vec2 p = vPos.xy;
+    p *= rot; //全体を傾ける
 
-	vec2 q = p - vec2(0.5, 0.5);
+    //原点からピクセルの長さを測るときに、距離を0~1にするための処理
+    vec2 repeat = vec2(fract(p.x * float(reps.x)), fract(p.y * float(reps.y)));
+    vec2 distFromMid = repeat - vec2(0.5); //中心点を基準にする
+    float dist = length(distFromMid); //原点からの距離をとる
 
-	vec2 repeat = vec2(fract(q.x * float(reps.x)), fract(q.y * float(reps.y)));
-	vec2 distFromMid = repeat - mid;
-
-	float dist = length(distFromMid);
-	float sharpness = 20.0;
-	float circ = rad * sharpness - dist * sharpness;
+    //半径分移動させて白黒はっきりさせる
+    float sharpness = 20.0;
+    float circ = (rad - dist) * sharpness;
     float alpha = 1.0 - circ;
 
     gl_FragColor = vec4(color, alpha);
-
 }
 </script>
 <script src="common/js/run.js"></script>
