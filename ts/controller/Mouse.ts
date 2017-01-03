@@ -27,7 +27,7 @@ module controller {
         };
         
         private onMouseDown = (e:MouseEvent) => {
-            
+            e.preventDefault();
             this.start = e.clientY;
             
             this._canvas.addEventListener('mousemove', this.onMouseMove, false);
@@ -35,6 +35,7 @@ module controller {
         };
         
         private onTouchStart = (e:TouchEvent) => {
+            e.preventDefault();
     
             let touch:Touch = e.changedTouches[0];
             this.start = touch.pageY;
@@ -44,15 +45,18 @@ module controller {
         };
     
         private onMouseMove = (e:MouseEvent) => {
+            e.preventDefault();
             this._model.mouseMove -= this.start - e.clientY;
         };
         
         private onTouchMove = (e:TouchEvent) => {
+            e.preventDefault();
             let touch:Touch = e.changedTouches[0];
             this._model.mouseMove -= this.start - touch.pageY;
         };
     
-        private onMoveEnd = (e:MouseEvent) => {
+        private onMoveEnd = (e) => {
+            e.preventDefault();
             this._canvas.removeEventListener('mousemove', this.onMouseMove);
             this._canvas.removeEventListener('mouseup', this.onMoveEnd);
             this._canvas.removeEventListener('touchmove', this.onTouchMove);

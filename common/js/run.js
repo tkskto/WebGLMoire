@@ -484,24 +484,29 @@ var controller;
                 _this._canvas.removeEventListener('touchend', _this.onMoveEnd);
             };
             this.onMouseDown = function (e) {
+                e.preventDefault();
                 _this.start = e.clientY;
                 _this._canvas.addEventListener('mousemove', _this.onMouseMove, false);
                 _this._canvas.addEventListener('mouseup', _this.onMoveEnd, false);
             };
             this.onTouchStart = function (e) {
+                e.preventDefault();
                 var touch = e.changedTouches[0];
                 _this.start = touch.pageY;
                 _this._canvas.addEventListener('touchmove', _this.onTouchMove, false);
                 _this._canvas.addEventListener('touchend', _this.onMoveEnd, false);
             };
             this.onMouseMove = function (e) {
+                e.preventDefault();
                 _this._model.mouseMove -= _this.start - e.clientY;
             };
             this.onTouchMove = function (e) {
+                e.preventDefault();
                 var touch = e.changedTouches[0];
                 _this._model.mouseMove -= _this.start - touch.pageY;
             };
             this.onMoveEnd = function (e) {
+                e.preventDefault();
                 _this._canvas.removeEventListener('mousemove', _this.onMouseMove);
                 _this._canvas.removeEventListener('mouseup', _this.onMoveEnd);
                 _this._canvas.removeEventListener('touchmove', _this.onTouchMove);
