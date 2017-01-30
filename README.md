@@ -10,3 +10,5 @@ WebGLでモアレを作ってみよう
 出典：http://www.h7.dion.ne.jp/~kagaku/moire/moire.html1
 
 [デモ](https://tkskto.github.io/WebGLMoire/)
+
+[Qiita記事](http://qiita.com/tkskto/items/729819f945fde7cdb89e)
